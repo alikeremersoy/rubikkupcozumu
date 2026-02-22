@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik Küpü Çözücü | 3D Etkileşimli</title>
+    <!-- Modern Typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-animation">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="container glass-panel">
+        <header>
+            <h1 class="gradient-text">3D Zeka Küpü Analizi</h1>
+            <p class="subtitle">Küpü farenle çevir, istediğin yüzeye tıkla ve o yüzeyin fotoğrafını veya renklerini
+                ekle.</p>
+        </header>
+
+        <main>
+            <!-- 3D Interactive Cube -->
+            <div class="scene">
+                <div class="cube" id="rubiks-cube">
+                    <!-- 6 Faces of the main cube -->
+                    <div class="cube-face cube-up" data-face="U">
+                        <canvas id="canvas-U" width="240" height="240"></canvas>
+                        <div class="face-label">ÜST (U)</div>
+                        <div id="grid-U" class="color-grid"></div>
+                    </div>
+                    <div class="cube-face cube-down" data-face="D">
+                        <canvas id="canvas-D" width="240" height="240"></canvas>
+                        <div class="face-label">ALT (D)</div>
+                        <div id="grid-D" class="color-grid"></div>
+                    </div>
+                    <div class="cube-face cube-right" data-face="R">
+                        <canvas id="canvas-R" width="240" height="240"></canvas>
+                        <div class="face-label">SAĞ (R)</div>
+                        <div id="grid-R" class="color-grid"></div>
+                    </div>
+                    <div class="cube-face cube-left" data-face="L">
+                        <canvas id="canvas-L" width="240" height="240"></canvas>
+                        <div class="face-label">SOL (L)</div>
+                        <div id="grid-L" class="color-grid"></div>
+                    </div>
+                    <div class="cube-face cube-front" data-face="F">
+                        <canvas id="canvas-F" width="240" height="240"></canvas>
+                        <div class="face-label">ÖN (F)</div>
+                        <div id="grid-F" class="color-grid"></div>
+                    </div>
+                    <div class="cube-face cube-back" data-face="B">
+                        <canvas id="canvas-B" width="240" height="240"></canvas>
+                        <div class="face-label">ARKA (B)</div>
+                        <div id="grid-B" class="color-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Face Actions for Selected Face -->
+            <div class="action-panel hidden" id="action-panel">
+                <h3 id="selected-face-title">Yüzey Seçildi</h3>
+                <div class="action-buttons">
+                    <label for="input-file" class="icon-btn" title="Dosyadan Seç">📂</label>
+                    <button class="icon-btn" id="btn-camera" title="Kameradan Çek">📷</button>
+                    <button class="icon-btn" id="btn-manual" title="Renkleri Elle Seç">✍️</button>
+                </div>
+                <input type="file" id="input-file" class="file-input" accept="image/*">
+            </div>
+
+            <div class="global-actions">
+                <button id="analyze-btn" class="btn primary-btn glow-on-hover">Tüm Küpü Analiz Et ve Çöz</button>
+            </div>
+
+            <!-- Error Notification -->
+            <div id="error-message" class="error-notification hidden"></div>
+
+            <!-- Analysis & Result Section -->
+            <div class="result-section hidden" id="result-section">
+                <h2>Çözüm Algoritması</h2>
+                <div
+                    style="background: rgba(245, 158, 11, 0.15); border-left: 4px solid #f59e0b; padding: 1rem; margin: 1rem 0; border-radius: 8px; text-align: left;">
+                    <strong>🛑 ÇÖZÜMÜ UYGULARKEN DİKKAT:</strong><br>
+                    Algoritmayı uygularken küpü <b>ASLA</b> elinde çevirme! Başlangıçta <b>ÖN (F)</b> yüzeyi sana,
+                    <b>ÜST (U)</b> yüzeyi tavana baksın. Çözüm bitene kadar sadece sana söylenen kenarları döndür.
+                </div>
+                <div id="solution-moves" class="solution-moves"></div>
+                <button id="reset-btn" class="btn secondary-btn mt-4">Yeni Küp</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Seçmek için yüzeye tıkla. Boşluğa tıklayarak veya sürükleyerek küpü çevir.</p>
+        </footer>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h2>Kameradan Çek</h2>
+            <div class="video-container">
+                <video id="camera-video" autoplay playsinline></video>
+                <div class="overlay-grid">
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                    <div class="guideline"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="capture-btn" class="btn primary-btn">Şimdi Çek</button>
+                <button id="close-camera-btn" class="btn secondary-btn">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Color Modal -->
+    <div id="manual-color-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <h2>Renk Seç (<span id="manual-face-name"></span>)</h2>
+            <div class="palette">
+                <div class="color-swatch" style="background-color: rgb(255,255,255);" data-color="255,255,255"></div>
+                <div class="color-swatch" style="background-color: rgb(255,0,0);" data-color="255,0,0"></div>
+                <div class="color-swatch" style="background-color: rgb(0,255,0);" data-color="0,255,0"></div>
+                <div class="color-swatch" style="background-color: rgb(255,255,0);" data-color="255,255,0"></div>
+                <div class="color-swatch" style="background-color: rgb(255,165,0);" data-color="255,165,0"></div>
+                <div class="color-swatch" style="background-color: rgb(0,0,255);" data-color="0,0,255"></div>
+            </div>
+            <div class="manual-grid" id="manual-grid">
+                <div class="manual-cell" data-index="0"></div>
+                <div class="manual-cell" data-index="1"></div>
+                <div class="manual-cell" data-index="2"></div>
+                <div class="manual-cell" data-index="3"></div>
+                <div class="manual-cell" data-index="4"></div>
+                <div class="manual-cell" data-index="5"></div>
+                <div class="manual-cell" data-index="6"></div>
+                <div class="manual-cell" data-index="7"></div>
+                <div class="manual-cell" data-index="8"></div>
+            </div>
+            <div class="modal-actions">
+                <button id="save-manual-btn" class="btn primary-btn">Kaydet</button>
+                <button id="close-manual-btn" class="btn secondary-btn">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js?v=3"></script>
+</body>
+
+</html>
